@@ -1,62 +1,34 @@
 import torch
 from models.deformable_detr import DeformableDETR
-from util.misc import nested_tensor_from_tensor_list
 from PIL import Image
 import torchvision.transforms as T
 
-# ----------------------------------------------------
-# 1. 构建 Deformable-DETR-R50（默认参数）
-#    这是仓库里的最小模型，不会炸 Jetson 显存
-# ----------------------------------------------------
-def build_model():
-    model = DeformableDETR(
-        num_classes=91,
-        num_queries=300,
-        num_feature_levels=4,
-        backbone="resnet50",
-    )
-    return model
+# 构建模型（默认参数）
+model = DeformableDETR(num_classes=91)
+model.eval()
 
-
-# ----------------------------------------------------
-# 2. 图像预处理
-# ----------------------------------------------------
+# 加载图像并预处理
+img = Image.open("test.jpg").convert("RGB")
 transform = T.Compose([
-    T.Resize(480),          # Jetson 显存小，需要降低分辨率
+    T.Resize(480),
     T.ToTensor(),
-    T.Normalize(
-        [0.485, 0.456, 0.406],
-        [0.229, 0.224, 0.225],
-    )
+    T.Normalize([0.485, 0.456, 0.406],
+                [0.229, 0.224, 0.225])
 ])
+img_tensor = transform(img).unsqueeze(0)  # [1, 3, H, W]
 
+# 构造 NestedTensor（必须）
+from util.misc import nested_tensor_from_tensor_list
+samples = nested_tensor_from_tensor_list([img_tensor])
 
-# ----------------------------------------------------
-# 3. 推理测试
-# ----------------------------------------------------
-@torch.no_grad()
-def run_test(model, device):
-    model.eval().to(device)
-
-    img = Image.open("test.jpg").convert("RGB")
-    img = transform(img)
-
-    samples = nested_tensor_from_tensor_list([img.to(device)])
-
-    print("Running inference on Jetson...")
+# 推理
+with torch.no_grad():
     outputs = model(samples)
 
-    print("Done!")
-    print("pred_logits:", outputs["pred_logits"].shape)
-    print("pred_boxes:", outputs["pred_boxes"].shape)
+# 打印输出形状
+print("pred_logits:", outputs["pred_logits"].shape)
+print("pred_boxes:", outputs["pred_boxes"].shape)
 
-
-if __name__ == "__main__":
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    print("Using device:", device)
-
-    model = build_model()
-    run_test(model, device)
 
 class _NewEmptyTensorOp(torch.autograd.Function):
         @staticmethod
