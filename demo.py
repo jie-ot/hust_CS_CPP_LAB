@@ -57,3 +57,14 @@ if __name__ == "__main__":
 
     model = build_model()
     run_test(model, device)
+
+class _NewEmptyTensorOp(torch.autograd.Function):
+        @staticmethod
+        def forward(ctx, x, new_shape):
+            ctx.shape = x.shape
+            return x.new_empty(new_shape)
+
+        @staticmethod
+        def backward(ctx, grad):
+            shape = ctx.shape
+            return _NewEmptyTensorOp.apply(grad, shape), None
