@@ -1,3 +1,12 @@
+python3 --version
+python3 -m venv deformable_detr
+source deformable_detr/bin/activate
+deactivate
+pip install torch==<匹配JetPack版本> torchvision==<匹配JetPack版本>
+pip install numpy pillow matplotlib opencv-python
+pip install pycocotools tqdm cython scipy
+
+
 import torch
 from models.deformable_detr import DeformableDETR
 from PIL import Image
