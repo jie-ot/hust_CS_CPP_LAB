@@ -187,13 +187,33 @@ def main():
 if __name__ == "__main__":
     main()
 
-Traceback (most recent call last):
-  File "test_deformable_detr.py", line 120, in <module>
-    main()
-  File "test_deformable_detr.py", line 34, in main
-    model_tuple = build_model(args)
-  File "/home/nx/Deformable-DETR/models/__init__.py", line 14, in build_model
-    return build(args)
-  File "/home/nx/Deformable-DETR/models/deformable_detr.py", line 445, in build
-    num_classes = 20 if args.dataset_file != 'coco' else 91
-AttributeError: 'Namespace' object has no attribute 'dataset_file'
+args = argparse.Namespace(
+    # 数据集相关
+    dataset_file="coco",       # 固定成 coco，保证 num_classes=91
+    num_classes=91,
+
+    # 模型结构
+    backbone="resnet50",
+    hidden_dim=256,
+    num_queries=300,
+    num_feature_levels=1,
+    dilation=False,
+    position_embedding="sine",
+
+    # Transformer结构
+    enc_layers=6,
+    dec_layers=6,
+    dim_feedforward=1024,
+    dropout=0.1,
+    nheads=8,
+
+    # 设备
+    device="cuda",
+
+    # 训练相关参数（推理不会用，但必须存在）
+    lr=1e-4,
+    lr_backbone=1e-5,
+    batch_size=2,
+    epochs=50,
+    output_dir="exps/r50_deformable_detr_single_scale"
+)
