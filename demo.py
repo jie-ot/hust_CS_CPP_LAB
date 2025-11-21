@@ -7,12 +7,12 @@ pip install torch==<匹配JetPack版本> torchvision==<匹配JetPack版本>
 pip install numpy pillow matplotlib opencv-python
 pip install pycocotools tqdm cython scipy
 
-pip install torch==2.1.0a0+41361538.nv23.6
-pip install torchvision==0.16.0+fbb4cc5
-pip install numpy==1.24.4
-pip install onnx==1.15.0
-pip install pillow matplotlib opencv-python
-pip install pycocotools tqdm cython scipy
+pip3 install torch==2.1.0a0+41361538.nv23.6
+pip3 install torchvision==0.16.0+fbb4cc5
+pip3 install numpy==1.24.4
+pip3 install onnx==1.15.0
+pip3 install pillow matplotlib opencv-python
+pip3 install pycocotools tqdm cython scipy
 
 
 
