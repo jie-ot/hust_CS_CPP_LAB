@@ -217,3 +217,17 @@ args = argparse.Namespace(
     epochs=50,
     output_dir="exps/r50_deformable_detr_single_scale"
 )
+nx@ubuntu:~/Deformable-DETR$ python3 test_deformable_detr.py
+Device: cuda
+/usr/local/lib/python3.8/dist-packages/torchvision-0.16.0+fbb4cc5-py3.8-linux-aarch64.egg/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/usr/local/lib/python3.8/dist-packages/torchvision-0.16.0+fbb4cc5-py3.8-linux-aarch64.egg/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Downloading: "https://download.pytorch.org/models/resnet50-0676ba61.pth" to /home/nx/.cache/torch/hub/checkpoints/resnet50-0676ba61.pth
+100%|██████████████████████████████████████| 97.8M/97.8M [00:05<00:00, 17.9MB/s]
+Traceback (most recent call last):
+  File "test_deformable_detr.py", line 150, in <module>
+    main()
+  File "test_deformable_detr.py", line 60, in main
+    transformer = build_deformable_transformer(agrs)
+NameError: name 'build_deformable_transformer' is not defined
