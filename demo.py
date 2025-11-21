@@ -65,7 +65,6 @@ The following packages will be upgraded:
   libuno-salhelpergcc3-3 libunoloader-java python-pip-whl python2.7
   python2.7-minimal python3-pip python3-uno tailscale uno-libs-private ure
 
-# infer_jetson_build.py
 import torch
 from PIL import Image
 import torchvision.transforms as T
@@ -73,16 +72,19 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import argparse
 
-from models import build_model
+from models.backbone import build_backbone
+from models.deformable_transformer import build_deforamble_transformer
+from models.deformable_detr import DeformableDETR
 from util.misc import nested_tensor_from_tensor_list
 
-CHECKPOINT = "/home/nx/Deformable-DETR/r50_deformable_detr_single_scale-checkpoint.pth50.pth"   
-IMAGE_PATH = "home/nx/Deformable-DETR/test.jpg"  
+CHECKPOINT = "/home/nx/Deformable-DETR/r50_deformable_detr_single_scale-checkpoint.pth"   
+IMAGE_PATH = "/home/nx/Deformable-DETR/test.jpg"  
 OUT_PATH = "/home/nx/Deformable-DETR/infer.jpg"
 NUM_CLASSES = 91
 NUM_QUERIES = 300
 NUM_FEATURE_LEVELS = 1 
 BACKBONE = "resnet50"
+HIDDEN_DIM = 256
 RESIZE_SHORT = 480
 SCORE_TH = 0.5
 
@@ -90,20 +92,50 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Device:", device)
 
-    # 构造一个简单的 args 给 build_model
     args = argparse.Namespace(
-        num_classes=NUM_CLASSES,
-        num_queries=NUM_QUERIES,
-        num_feature_levels=NUM_FEATURE_LEVELS,
-        backbone=BACKBONE
+    	dataset_file="coco", 
+    	num_classes=91,
+
+    	#模型结构
+    	backbone="resnet50",
+    	hidden_dim=256,
+    	num_queries=300,
+    	num_feature_levels=1,
+    	dilation=False,
+    	position_embedding="sine",
+
+    	#Transformer结构
+    	enc_layers=6,
+    	dec_layers=6,
+    	dim_feedforward=1024,
+    	dropout=0.1,
+    	nheads=8,
+
+    	#设备
+    	device="cuda",
+	
+    	#训练相关参数
+    	lr=1e-4,
+    	masks=False,
+    	lr_backbone=1e-5,
+    	batch_size=2,
+    	epochs=50,
+    	output_dir="exps/r50_deformable_detr_single_scale",
+    	enc_n_points=4,
+    	dec_n_points=4,
+    	two_stage=False
     )
 
-    # 用 build_model 构造模型（返回通常是 (model, criterion, postprocessors)）
-    model_tuple = build_model(args)
-    if isinstance(model_tuple, tuple):
-        model = model_tuple[0]
-    else:
-        model = model_tuple
+    backbone = build_backbone(args)
+    transformer = build_deforamble_transformer(args)
+    
+    model = DeformableDETR(
+    	backbone=backbone,
+    	transformer=transformer,
+    	num_classes=NUM_CLASSES,
+    	num_queries=NUM_QUERIES,
+    	num_feature_levels=NUM_FEATURE_LEVELS
+    )
 
     model.to(device)
     model.eval()
@@ -187,47 +219,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-args = argparse.Namespace(
-    # 数据集相关
-    dataset_file="coco",       # 固定成 coco，保证 num_classes=91
-    num_classes=91,
-
-    # 模型结构
-    backbone="resnet50",
-    hidden_dim=256,
-    num_queries=300,
-    num_feature_levels=1,
-    dilation=False,
-    position_embedding="sine",
-
-    # Transformer结构
-    enc_layers=6,
-    dec_layers=6,
-    dim_feedforward=1024,
-    dropout=0.1,
-    nheads=8,
-
-    # 设备
-    device="cuda",
-
-    # 训练相关参数（推理不会用，但必须存在）
-    lr=1e-4,
-    lr_backbone=1e-5,
-    batch_size=2,
-    epochs=50,
-    output_dir="exps/r50_deformable_detr_single_scale"
-)
-nx@ubuntu:~/Deformable-DETR$ python3 test_deformable_detr.py
-Device: cuda
-/usr/local/lib/python3.8/dist-packages/torchvision-0.16.0+fbb4cc5-py3.8-linux-aarch64.egg/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
-  warnings.warn(
-/usr/local/lib/python3.8/dist-packages/torchvision-0.16.0+fbb4cc5-py3.8-linux-aarch64.egg/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
-  warnings.warn(msg)
-Downloading: "https://download.pytorch.org/models/resnet50-0676ba61.pth" to /home/nx/.cache/torch/hub/checkpoints/resnet50-0676ba61.pth
-100%|██████████████████████████████████████| 97.8M/97.8M [00:05<00:00, 17.9MB/s]
-Traceback (most recent call last):
-  File "test_deformable_detr.py", line 150, in <module>
-    main()
-  File "test_deformable_detr.py", line 60, in main
-    transformer = build_deformable_transformer(agrs)
-NameError: name 'build_deformable_transformer' is not defined
