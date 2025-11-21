@@ -73,27 +73,24 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import argparse
 
-# 从仓库导入 build_model 和 nested_tensor_from_tensor_list
 from models import build_model
 from util.misc import nested_tensor_from_tensor_list
 
-# --------- 简单配置（按需改路径） ----------
-CHECKPOINT = "deformable_detr_r50.pth"   # <-- 改成你根目录下的 checkpoint 名
-IMAGE_PATH = "/mnt/data/49d16b3d-65ed-4b16-83d2-259b1f7056ea.png"  # 默认用你上传的图片
-OUT_PATH = "infer_result_build.jpg"
+CHECKPOINT = "/home/nx/Deformable-DETR/r50_deformable_detr_single_scale-checkpoint.pth50.pth"   
+IMAGE_PATH = "home/nx/Deformable-DETR/test.jpg"  
+OUT_PATH = "/home/nx/Deformable-DETR/infer.jpg"
 NUM_CLASSES = 91
 NUM_QUERIES = 300
-NUM_FEATURE_LEVELS = 1   # single-scale = 1, multi-scale = 4
+NUM_FEATURE_LEVELS = 1 
 BACKBONE = "resnet50"
 RESIZE_SHORT = 480
 SCORE_TH = 0.5
-# --------------------------------------------
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Device:", device)
 
-    # 构造一个简单的 args 给 build_model（仅包含常用字段）
+    # 构造一个简单的 args 给 build_model
     args = argparse.Namespace(
         num_classes=NUM_CLASSES,
         num_queries=NUM_QUERIES,
@@ -111,7 +108,7 @@ def main():
     model.to(device)
     model.eval()
 
-    # 加载 checkpoint（如果 checkpoint 是 dict 包含 "model" key，则取它；否则直接当 state_dict）
+    # 加载 checkpoint
     ckpt = torch.load(CHECKPOINT, map_location=device)
     if isinstance(ckpt, dict) and "model" in ckpt:
         state = ckpt["model"]
@@ -120,7 +117,7 @@ def main():
     else:
         state = ckpt
 
-    # 加载权重（strict=False 以容错）
+    # 加载权重
     model.load_state_dict(state, strict=False)
     print("Loaded checkpoint:", CHECKPOINT)
 
@@ -134,10 +131,10 @@ def main():
     ])
     img_t = transform(img).unsqueeze(0).to(device)  # [1,C,H,W]
 
-    # nested tensor（保持与你仓库实现一致的输入形式）
+    # nested tensor
     samples = nested_tensor_from_tensor_list([img_t])
 
-    # 推理（在 CUDA 上启用 autocast 加速/省显存）
+    # 推理, 启用 autocast 省显存
     with torch.no_grad():
         if device.type == "cuda":
             with torch.cuda.amp.autocast(enabled=True, dtype=torch.float16):
@@ -160,7 +157,6 @@ def main():
     kept_labels = labels[keep].numpy()
     kept_scores = scores[keep].numpy()
 
-    # 注意我们对的是 Resize(RESIZE_SHORT) 后的图，所以要用 resized 的宽高
     resized = T.Resize(RESIZE_SHORT)(Image.open(IMAGE_PATH).convert("RGB"))
     W, H = resized.size
 
@@ -173,7 +169,7 @@ def main():
         hh = h * H
         rects.append((x, y, ww, hh))
 
-    # 可视化并保存（用 resized 图）
+    # 可视化并保存
     fig, ax = plt.subplots(1, figsize=(12, 8))
     ax.imshow(resized)
     for (x, y, ww, hh), lab, sc in zip(rects, kept_labels, kept_scores):
@@ -190,3 +186,14 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+Traceback (most recent call last):
+  File "test_deformable_detr.py", line 120, in <module>
+    main()
+  File "test_deformable_detr.py", line 34, in main
+    model_tuple = build_model(args)
+  File "/home/nx/Deformable-DETR/models/__init__.py", line 14, in build_model
+    return build(args)
+  File "/home/nx/Deformable-DETR/models/deformable_detr.py", line 445, in build
+    num_classes = 20 if args.dataset_file != 'coco' else 91
+AttributeError: 'Namespace' object has no attribute 'dataset_file'
