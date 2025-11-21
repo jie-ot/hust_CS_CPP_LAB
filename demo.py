@@ -65,107 +65,122 @@ The following packages will be upgraded:
   libuno-salhelpergcc3-3 libunoloader-java python-pip-whl python2.7
   python2.7-minimal python3-pip python3-uno tailscale uno-libs-private ure
 
+# detr_infer_jetson.py
+import os
 import torch
-from models.deformable_detr import DeformableDETR
-from PIL import Image
-import torchvision.transforms as T
-
-# 构建模型（默认参数）
-model = DeformableDETR(num_classes=91)
-model.eval()
-
-# 加载图像并预处理
-img = Image.open("test.jpg").convert("RGB")
-transform = T.Compose([
-    T.Resize(480),
-    T.ToTensor(),
-    T.Normalize([0.485, 0.456, 0.406],
-                [0.229, 0.224, 0.225])
-])
-img_tensor = transform(img).unsqueeze(0)  # [1, 3, H, W]
-
-# 构造 NestedTensor（必须）
-from util.misc import nested_tensor_from_tensor_list
-samples = nested_tensor_from_tensor_list([img_tensor])
-
-# 推理
-with torch.no_grad():
-    outputs = model(samples)
-
-# 打印输出形状
-print("pred_logits:", outputs["pred_logits"].shape)
-print("pred_boxes:", outputs["pred_boxes"].shape)
-
-
-class _NewEmptyTensorOp(torch.autograd.Function):
-        @staticmethod
-        def forward(ctx, x, new_shape):
-            ctx.shape = x.shape
-            return x.new_empty(new_shape)
-
-        @staticmethod
-        def backward(ctx, grad):
-            shape = ctx.shape
-            return _NewEmptyTensorOp.apply(grad, shape), None
-
-import torch
-from models.deformable_detr import DeformableDETR
 from PIL import Image
 import torchvision.transforms as T
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import numpy as np
 
-# 1. 构建模型并加载预训练权重
-model = DeformableDETR(num_classes=91)
-checkpoint = torch.load("deformable_detr_coco.pth", map_location="cpu")  # 预训练权重路径
-model.load_state_dict(checkpoint["model"])
-model.eval()
-
-# 2. 图像预处理
-img = Image.open("test.jpg").convert("RGB")
-transform = T.Compose([
-    T.Resize(480),
-    T.ToTensor(),
-    T.Normalize([0.485, 0.456, 0.406],
-                [0.229, 0.224, 0.225])
-])
-img_tensor = transform(img).unsqueeze(0)
-
-# 3. 构造 NestedTensor
+from models.deformable_detr import DeformableDETR
 from util.misc import nested_tensor_from_tensor_list
-samples = nested_tensor_from_tensor_list([img_tensor])
 
-# 4. 推理
-with torch.no_grad():
-    outputs = model(samples)
+#CONFIG
+CHECKPOINT_PATH = "/home/ubuntu/checkpoints/deformable_detr_r50.pth"
+IMAGE_PATH = "/home/ubuntu/images/test.jpg" 
+OUT_PATH = "/home/ubuntu/images/out_infer.jpg"
+NUM_CLASSES = 91 
+RESIZE_SHORT_SIDE = 480 
+SCORE_THR = 0.5
 
-# 5. 后处理：取置信度最高的预测
-logits = outputs["pred_logits"][0]  # [num_queries, num_classes+1]
-boxes = outputs["pred_boxes"][0]    # [num_queries, 4]
+def load_checkpoint_to_model(model, ckpt_path, device):
+    ckpt = torch.load(ckpt_path, map_location=device)
+    # 兼容不同checkpoint格式
+    if isinstance(ckpt, dict):
+        # 常见 key: "model", "state_dict"
+        if "model" in ckpt:
+            state = ckpt["model"]
+        elif "state_dict" in ckpt:
+            state = ckpt["state_dict"]
+        else:
+            state = ckpt
+    else:
+        state = ckpt
+    model.load_state_dict(state, strict=False)
+    return model
 
-probs = logits.softmax(-1)
-scores, labels = probs.max(-1)
+def preprocess_image(pil_img, resize_short=RESIZE_SHORT_SIDE):
+    # 返回两个：PIL resized (用于保存/可视化) 与normalize后的tensor
+    resized_pil = T.Resize(resize_short)(pil_img)  # 保持长宽比，短边为resize_short
+    # 转为tensor并归一
+    to_tensor = T.ToTensor()
+    img_t = to_tensor(resized_pil)  # C,H,W, float32 [0,1]
+    normalize = T.Normalize([0.485, 0.456, 0.406],
+                            [0.229, 0.224, 0.225])
+    img_t = normalize(img_t)
+    img_batch = img_t.unsqueeze(0)  # 1,C,H,W
+    return resized_pil, img_batch
 
-# 过滤掉背景和低置信度
-keep = (labels != 91) & (scores > 0.5)
+def main():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Device:", device)
 
-# 6. 可视化结果
-fig, ax = plt.subplots(1, figsize=(12, 8))
-ax.imshow(img)
+    # 构建模型
+    model = DeformableDETR(num_classes=NUM_CLASSES)
+    model.to(device)
+    model.eval()
 
-for box, label, score in zip(boxes[keep], labels[keep], scores[keep]):
-    # box 是归一化坐标 [cx, cy, w, h]
-    cx, cy, w, h = box
-    x = (cx - w/2) * img.width
-    y = (cy - h/2) * img.height
-    w = w * img.width
-    h = h * img.height
+    # 加载checkpoint
+    print("Loading checkpoint:", CHECKPOINT_PATH)
+    model = load_checkpoint_to_model(model, CHECKPOINT_PATH, device)
+    model.to(device)
+    model.eval()
 
-    rect = patches.Rectangle((x, y), w, h, linewidth=2,
-                             edgecolor='red', facecolor='none')
-    ax.add_patch(rect)
-    ax.text(x, y, f"{label.item()}:{score:.2f}", 
-            bbox=dict(facecolor='yellow', alpha=0.5))
+    # 读图并预处理
+    img = Image.open(IMAGE_PATH).convert("RGB")
+    resized_pil, img_batch = preprocess_image(img, RESIZE_SHORT_SIDE)
 
-plt.show()
+    # 将输入移到device
+    img_batch = img_batch.to(device)
 
+    # 构造NestedTensor
+    samples = nested_tensor_from_tensor_list([img_batch])
+
+    # 推理
+    with torch.no_grad():
+        # 在Jetson上启用autocast(fp16)可以显著减显存和提速
+        with torch.cuda.amp.autocast(enabled=(device.type == "cuda"), dtype=torch.float16):
+            outputs = model(samples)
+
+    # 后处理
+    logits = outputs["pred_logits"][0].cpu()  # [num_queries, num_classes+1]
+    boxes = outputs["pred_boxes"][0].cpu()    # [num_queries, 4] 归一化的 [cx,cy,w,h] 相对 resized 输入
+
+    probs = logits.softmax(-1)
+    scores, labels = probs.max(-1)
+
+    bg_index = NUM_CLASSES
+    keep = (labels != bg_index) & (scores > SCORE_THR)
+
+    kept_boxes = boxes[keep].numpy()
+    kept_labels = labels[keep].numpy()
+    kept_scores = scores[keep].numpy()
+
+    # 把 box 从归一化 [cx,cy,w,h] 映射到像素（针对 resized_pil 的尺寸）
+    W, H = resized_pil.size  # PIL: (width, height)
+    rects = []
+    for (cx, cy, w, h) in kept_boxes:
+        x = (cx - w/2) * W
+        y = (cy - h/2) * H
+        ww = w * W
+        hh = h * H
+        rects.append((x, y, ww, hh))
+
+    # 可视化并保存
+    fig, ax = plt.subplots(1, figsize=(12, 8))
+    ax.imshow(resized_pil)
+    for (x,y,ww,hh), lab, sc in zip(rects, kept_labels, kept_scores):
+        rect = patches.Rectangle((x, y), ww, hh, linewidth=2, edgecolor='r', facecolor='none')
+        ax.add_patch(rect)
+        ax.text(x, y, f"{int(lab)}:{sc:.2f}", fontsize=10, bbox=dict(facecolor='yellow', alpha=0.5))
+    ax.axis('off')
+    plt.tight_layout()
+    plt.savefig(OUT_PATH, dpi=150, bbox_inches='tight')
+    plt.close(fig)
+    print("Saved visualization to:", OUT_PATH)
+    print("Kept detections:", len(rects))
+
+if __name__ == "__main__":
+    main()
