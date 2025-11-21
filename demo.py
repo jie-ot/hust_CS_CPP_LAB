@@ -14,7 +14,18 @@ pip3 install onnx==1.15.0
 pip3 install pillow matplotlib opencv-python
 pip3 install pycocotools tqdm cython scipy
 
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+Some packages could not be installed. This may mean that you have
+requested an impossible situation or if you are using the unstable
+distribution that some required packages have not yet been created
+or been moved out of Incoming.
+The following information may help to resolve the situation:
 
+The following packages have unmet dependencies:
+ python3.8-venv : Depends: python3.8 (= 3.8.10-0ubuntu1~20.04.18) but 3.8.10-0ubuntu1~20.04.9 is to be installed
+E: Unable to correct problems, you have held broken packages.
 
 import torch
 from models.deformable_detr import DeformableDETR
