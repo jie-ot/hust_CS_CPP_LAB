@@ -3,29 +3,67 @@ python3 -m venv deformable_detr
 source deformable_detr/bin/activate
 deactivate
 
-pip install torch==<匹配JetPack版本> torchvision==<匹配JetPack版本>
-pip install numpy pillow matplotlib opencv-python
-pip install pycocotools tqdm cython scipy
-
 pip3 install torch==2.1.0a0+41361538.nv23.6
 pip3 install torchvision==0.16.0+fbb4cc5
 pip3 install numpy==1.24.4
 pip3 install onnx==1.15.0
 pip3 install pillow matplotlib opencv-python
 pip3 install pycocotools tqdm cython scipy
-
-Reading package lists... Done
-Building dependency tree       
-Reading state information... Done
-Some packages could not be installed. This may mean that you have
-requested an impossible situation or if you are using the unstable
-distribution that some required packages have not yet been created
-or been moved out of Incoming.
-The following information may help to resolve the situation:
-
-The following packages have unmet dependencies:
- python3.8-venv : Depends: python3.8 (= 3.8.10-0ubuntu1~20.04.18) but 3.8.10-0ubuntu1~20.04.9 is to be installed
-E: Unable to correct problems, you have held broken packages.
+       
+Reading stateThe following packages were automatically installed and are no longer required:
+  libcmis-0.5-5v5 libgpgmepp6 libjuh-java libjurt-java liblibreoffice-java
+  libmwaw-0.3-3 libneon27-gnutls liborcus-0.15-0 libreoffice-style-tango
+  libridl-java libunoloader-java libwps-0.4-4 ure-java
+Use 'sudo apt autoremove' to remove them.
+The following security updates require Ubuntu Pro with 'esm-infra' enabled:
+  libgstreamer-plugins-base1.0-dev libsoup-gnome2.4-1 libopenjp2-7
+  poppler-utils gstreamer1.0-alsa libcups2 libprotoc-dev linux-libc-dev
+  xserver-common libpoppler-dev libxml2-utils libpython3.8-dev gir1.2-soup-2.4
+  gstreamer1.0-plugins-base-apps openssl libblockdev-swap2 ruby2.7
+  xserver-xorg-core libprotoc17 gir1.2-gdkpixbuf-2.0 libgdk-pixbuf2.0-0
+  libssh-4 libpython3.8-minimal libsqlite3-dev libwbclient0 git-man
+  libmysqlclient-dev libsystemd0 gcc-10-base gstreamer1.0-plugins-good libgs9
+  python2.7-minimal libsqlite3-0 python3-protobuf python3-urllib3 bind9-host
+  libitm1 libcgraph6 libtiff-dev sudo libpython2.7 python2.7 python3-pip
+  libpython3.8 python3.8 xserver-xorg-legacy git libblockdev-crypto2 udev
+  gstreamer1.0-plugins-base libblockdev-loop2 libblockdev-fs2
+  libgstreamer-plugins-good1.0-dev libblockdev-part2 python3-requests
+  liblab-gamut1 libgstreamer-plugins-good1.0-0 libudev1 libsoup2.4-1
+  gstreamer1.0-pulseaudio systemd-timesyncd libpoppler-private-dev libgcc1
+  samba-libs xserver-xephyr protobuf-compiler gstreamer1.0-gtk3 libpmix2
+  libtiff5 udisks2 libtsan0 libubsan1 libruby2.7 libprotobuf-lite17
+  libgfortran5 libcupsfilters1 python3.8-minimal libgstreamer-gl1.0-0
+  systemd-sysv libblockdev2 libxml2-dev libpam-systemd
+  libgstreamer-plugins-base1.0-0 libcdt5 xwayland gstreamer1.0-x ghostscript
+  liblsan0 libpathplan4 systemd libgomp1 libgdk-pixbuf2.0-bin libssh-gcrypt-4
+  gir1.2-gst-plugins-base-1.0 libssl-dev libblockdev-utils2 ghostscript-x
+  libgvpr2 libgdk-pixbuf2.0-common libsmbclient libgdk-pixbuf2.0-dev
+  libmysqlclient21 libnss-systemd libgs9-common libblockdev-part-err2
+  libgcc-s1 libxml2 libpython2.7-minimal libpython3.8-stdlib libgnutls30
+  libudisks2-0 python3.8-dev libatomic1 libssl1.1 libcc1-0 libgvc6
+  libprotobuf17 libcupsimage2 libpython2.7-stdlib libpoppler-glib8 libstdc++6
+  libpoppler97 python3-scipy libprotobuf-dev libopenjp2-7-dev graphviz
+  python-pip-whl bind9-libs gstreamer1.0-gl libtiffxx5 libxslt1.1
+Learn more about Ubuntu Pro at https://ubuntu.com/pro
+The following NEW packages will be installed:
+  ca-certificates-java default-jre default-jre-headless fonts-dejavu-extra
+  java-common libatk-wrapper-java libatk-wrapper-java-jni liblibreoffice-java
+  libreoffice-style-yaru openjdk-11-jre openjdk-11-jre-headless ure-java
+The following packages have been kept back:
+  gir1.2-gtk-2.0
+The following packages will be upgraded:
+  fonts-opensymbol libaom0 libglib2.0-tests libjuh-java libjurt-java
+  libpython2.7 libpython2.7-minimal libpython2.7-stdlib librealsense2
+  librealsense2-dbg librealsense2-dev librealsense2-gl librealsense2-gl-dbg
+  librealsense2-gl-dev librealsense2-udev-rules librealsense2-utils
+  libreoffice-base-core libreoffice-calc libreoffice-common libreoffice-core
+  libreoffice-draw libreoffice-gnome libreoffice-gtk3 libreoffice-impress
+  libreoffice-math libreoffice-pdfimport libreoffice-style-breeze
+  libreoffice-style-colibre libreoffice-style-elementary
+  libreoffice-style-tango libreoffice-writer libridl-java libtar-dev libtar0
+  libuno-cppu3 libuno-cppuhelpergcc3-3 libuno-purpenvhelpergcc3-3 libuno-sal3
+  libuno-salhelpergcc3-3 libunoloader-java python-pip-whl python2.7
+  python2.7-minimal python3-pip python3-uno tailscale uno-libs-private ure
 
 import torch
 from models.deformable_detr import DeformableDETR
