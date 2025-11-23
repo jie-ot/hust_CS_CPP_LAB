@@ -8,8 +8,9 @@ num_feature_levels: 1
 hidden_dim: 256
 backbone: "resnet50"
 
-# 推理相关
+#短边缩放到480
 resize_short: 480
+#置信度
 score_th: 0.5
 
 # 输入话题
