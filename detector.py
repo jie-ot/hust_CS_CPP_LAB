@@ -82,6 +82,7 @@ class DeformableDETRRunner:
         ckpt = torch.load(self.checkpoint, map_location=self.device)
         state = ckpt.get("model", ckpt.get("state_dict", ckpt))
         self.model.load_state_dict(state, strict=False)
+        print(f"[DeformableDETRRunner] 模型已成功加载，使用设备: {self.device}")
 
         # 预处理
         self.transform = T.Compose([
