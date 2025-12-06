@@ -143,6 +143,8 @@ class DetrDetectorNode:
         self.bridge = CvBridge()
         self.sub = rospy.Subscriber(cfg["input_topic"], Image, self.image_cb, queue_size=1)
         self.pub = rospy.Publisher("/detections", Detection, queue_size=10)
+        rospy.loginfo("detector节点启动")
+
 
     def image_cb(self,msg):
         cv_img = self.bridge.imgmsg_to_cv2(msg,"bgr8")
