@@ -25,6 +25,8 @@ float32 score
 int32 class_id
 
 
+std_msgs/Header header
+detr_detector/Detection[] detections
 
 
 import torch
@@ -162,6 +164,31 @@ if __name__=="__main__":
     rospy.init_node("detr_detector")
     DetrDetectorNode()
     rospy.spin()
+
+
+
+修改：（1）添加成功加载模型的打印信息 （2）添加detector节点启动的打印信息 （3）添加一个新的msg文件DetectionArray.msg，并记得在CMakeLists.txt中把 DetectionArray.msg 加入 add_message_files
+    （4）在detector_node.py中进行如下修改：
+        from detr_detector.msg import Detection, DetectionArray
+        self.pub = rospy.Publisher("/detections", DetectionArray, queue_size=10)
+
+    def image_cb(self,msg):
+        cv_img = self.bridge.imgmsg_to_cv2(msg,"bgr8")
+        pil_img = PILImage.fromarray(cv_img[:,:,::-1])
+        dets = self.runner.infer_image(pil_img)
+
+        arr = DetectionArray()
+        arr.header = Header(stamp=msg.header.stamp, frame_id=msg.header.frame_id)
+
+        for x1,y1,x2,y2,score,cls in dets:
+            d = Detection()
+            d.header = arr.header
+            d.bbox = [x1,y1,x2,y2]
+            d.score = score
+            d.class_id = cls
+            arr.detections.append(d)
+
+        self.pub.publish(arr)
 
 
 
