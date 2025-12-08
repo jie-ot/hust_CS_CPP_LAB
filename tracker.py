@@ -16,21 +16,16 @@ int32 class_id
 
 
 
-image_topic: "/camera/image_color"
-detection_topic: "/detections"
-
+detections_topic: "/detections"
 tracks_topic: "/tracks"
 
-# BYTETracker
-track_thresh: 0.5       # High detection threshold for tracking start
-match_thresh: 0.8       # Association IOU threshold
-track_buffer: 30        # Frames to keep lost tracks
-frame_rate: 30          # FPS of input stream
+# ByteTracker
+track_thresh: 0.5       
+match_thresh: 0.8       
+track_buffer: 30        
+frame_rate: 30          
 
 aspect_ratio_thresh: 1.6
 min_box_area: 10
 mot20: false
 
-# 聚合与同步策略
-aggregation_timeout_ms: 50  # 每帧检测聚合的时间窗口，按 stamp 聚合
-max_queue_size: 100         # 缓存最大条目数
