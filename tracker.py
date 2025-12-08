@@ -2,7 +2,7 @@
 # git clone https://github.com/FoundationVision/ByteTrack
 
 <launch>
-  <arg name="config_file" default="$(find byte_tracker_ros)/config/tracker_config.yaml"/>
+  <arg name="config_file" default="$(find tracker)/config/tracker_config.yaml"/>
   <node pkg="tracker" type="tracker_node" name="tracker" output="screen">
     <param name="config_file" value="$(arg config_file)"/>
   </node>
@@ -13,8 +13,7 @@
 std_msgs/Header header
 int32 track_id
 float32[4] bbox   # [x1, y1, x2, y2]
-float32 score
-int32 class_id 
+float32 score 
 
 # TrackArray.msg
 std_msgs/Header header
@@ -80,11 +79,9 @@ class TrackerNode:
 
     def det_cb(self, msg: DetectionArray):
         detections = []
-        class_ids = []
         for det in msg.detections:
             x1, y1, x2, y2 = det.bbox
             detections.append([float(x1), float(y1), float(x2), float(y2), float(det.score)])
-            class_ids.append(det.class_id)
 
         if len(detections) > 0:
             dets_np = np.array(detections, dtype=np.float32)   # shape:(N,5)
@@ -111,7 +108,6 @@ class TrackerNode:
             track_msg.track_id = int(getattr(t, "track_id", getattr(t, "id", -1)))
             track_msg.bbox = [float(x1), float(y1), float(x2), float(y2)]
             track_msg.score = float(getattr(t, "score", getattr(t, "det_score", 0.0)))
-            track_msg.class_id = class_ids[i] if i < len(class_ids) else -1
 
             arr.tracks.append(track_msg)
 
