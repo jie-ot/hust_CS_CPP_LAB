@@ -200,7 +200,7 @@ if __name__=="__main__":
 
 <launch>
   <arg name="config_file" default="$(find detr_detector)/config/detector.yaml"/>
-  <node pkg="detr_detector" type="detector_node.py" name="detr_detector" output="screen">
+  <node pkg="detr_detector" type="detector_node" name="detr_detector" output="screen">
     <param name="config_file" value="$(arg config_file)"/>
   </node>
 </launch>
