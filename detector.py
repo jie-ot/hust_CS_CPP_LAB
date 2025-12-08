@@ -26,6 +26,8 @@ int32 class_id
 
 
 std_msgs/Header header
+int32 width
+int32 height
 detr_detector/Detection[] detections
 
 
@@ -122,7 +124,7 @@ class DeformableDETRRunner:
             x2 = (cx + w/2) * W
             y2 = (cy + h/2) * H
             dets.append([x1, y1, x2, y2, float(sc), int(lab)])
-        return dets
+        return dets, W, H
 
 
 
@@ -175,10 +177,12 @@ if __name__=="__main__":
     def image_cb(self,msg):
         cv_img = self.bridge.imgmsg_to_cv2(msg,"bgr8")
         pil_img = PILImage.fromarray(cv_img[:,:,::-1])
-        dets = self.runner.infer_image(pil_img)
+        dets, W, H = self.runner.infer_image(pil_img)
 
         arr = DetectionArray()
         arr.header = Header(stamp=msg.header.stamp, frame_id=msg.header.frame_id)
+        arr.width = W
+        arr.height = H
 
         for x1,y1,x2,y2,score,cls in dets:
             d = Detection()
@@ -189,6 +193,7 @@ if __name__=="__main__":
             arr.detections.append(d)
 
         self.pub.publish(arr)
+    （5）添加了infer_image的返回值，返回图像尺寸，同时回调函数中要发布尺寸
 
 
 
