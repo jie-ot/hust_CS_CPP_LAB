@@ -1,7 +1,22 @@
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIEJzWmzNF4g/eX6U8t2guwvgOlS19WBfYRjbteOKffk nx@ubuntu
-  File "/home/nx/catkin_ws/src/detr_detector/src/detector_node.py", line 8, in <module>
-    from infer_detr import DeformableDETRRunner
-ModuleNotFoundError: No module named 'infer_detr'
+[ERROR] [1765795072.405005]: bad callback: <bound method TrackerNode.det_cb of <__main__.TrackerNode object at 0xfffef90c44c0>>
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 750, in _invoke_callback
+    cb(msg)
+  File "/home/nx/catkin_ws/src/tracker/src/tracker_node.py", line 55, in det_cb
+    online_targets = self.tracker.update(dets_np, img_info, img_size)
+  File "/home/nx/catkin_ws/src/tracker/src/../third_party/ByteTrack/yolox/tracker/byte_tracker.py", line 213, in update
+    dists = matching.iou_distance(strack_pool, detections)
+  File "/home/nx/catkin_ws/src/tracker/src/../third_party/ByteTrack/yolox/tracker/matching.py", line 88, in iou_distance
+    _ious = ious(atlbrs, btlbrs)
+  File "/home/nx/catkin_ws/src/tracker/src/../third_party/ByteTrack/yolox/tracker/matching.py", line 61, in ious
+    ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float)
+  File "/usr/local/lib/python3.8/dist-packages/numpy/__init__.py", line 305, in __getattr__
+    raise AttributeError(__former_attrs__[attr])
+AttributeError: module 'numpy' has no attribute 'float'.
+`np.float` was a deprecated alias for the builtin `float`. To avoid this error in existing code, use `float` by itself. Doing this will not modify any behavior and is safe. If you specifically wanted the numpy scalar type, use `np.float64` here.
+The aliases was originally deprecated in NumPy 1.20; for more details and guidance see the original release note at:
+    https://numpy.org/devdocs/release/1.20.0-notes.html#deprecations
 
 
 Traceback (most recent call last):
