@@ -4,6 +4,32 @@ ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIEJzWmzNF4g/eX6U8t2guwvgOlS19WBfYRjbteOKffk
 ModuleNotFoundError: No module named 'infer_detr'
 
 
+Traceback (most recent call last):
+  File "/home/nx/catkin_ws/devel/lib/detr_detector/detector_node.py", line 15, in <module>
+    exec(compile(fh.read(), python_script, 'exec'), context)
+  File "/home/nx/catkin_ws/src/detr_detector/src/detector_node.py", line 143, in <module>
+    DetrDetectorNode()
+  File "/home/nx/catkin_ws/src/detr_detector/src/detector_node.py", line 114, in __init__
+    self.runner = DeformableDETRRunner(cfg)
+  File "/home/nx/catkin_ws/src/detr_detector/src/detector_node.py", line 67, in __init__
+    self.model.load_state_dict(state, strict=False)
+  File "/usr/local/lib/python3.8/dist-packages/torch/nn/modules/module.py", line 2040, in load_state_dict
+    raise RuntimeError('Error(s) in loading state_dict for {}:\n\t{}'.format(
+RuntimeError: Error(s) in loading state_dict for DeformableDETR:
+	size mismatch for class_embed.0.weight: copying a param with shape torch.Size([91, 256]) from checkpoint, the shape in current model is torch.Size([7, 256]).
+	size mismatch for class_embed.0.bias: copying a param with shape torch.Size([91]) from checkpoint, the shape in current model is torch.Size([7]).
+	size mismatch for class_embed.1.weight: copying a param with shape torch.Size([91, 256]) from checkpoint, the shape in current model is torch.Size([7, 256]).
+	size mismatch for class_embed.1.bias: copying a param with shape torch.Size([91]) from checkpoint, the shape in current model is torch.Size([7]).
+	size mismatch for class_embed.2.weight: copying a param with shape torch.Size([91, 256]) from checkpoint, the shape in current model is torch.Size([7, 256]).
+	size mismatch for class_embed.2.bias: copying a param with shape torch.Size([91]) from checkpoint, the shape in current model is torch.Size([7]).
+	size mismatch for class_embed.3.weight: copying a param with shape torch.Size([91, 256]) from checkpoint, the shape in current model is torch.Size([7, 256]).
+	size mismatch for class_embed.3.bias: copying a param with shape torch.Size([91]) from checkpoint, the shape in current model is torch.Size([7]).
+	size mismatch for class_embed.4.weight: copying a param with shape torch.Size([91, 256]) from checkpoint, the shape in current model is torch.Size([7, 256]).
+	size mismatch for class_embed.4.bias: copying a param with shape torch.Size([91]) from checkpoint, the shape in current model is torch.Size([7]).
+	size mismatch for class_embed.5.weight: copying a param with shape torch.Size([91, 256]) from checkpoint, the shape in current model is torch.Size([7, 256]).
+	size mismatch for class_embed.5.bias: copying a param with shape torch.Size([91]) from checkpoint, the shape in current model is torch.Size([7]).
+
+
 
 python3 --version
 python3 -m venv deformable_detr
