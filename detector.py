@@ -353,3 +353,152 @@ class DeformableDETRRunner:
             y2 = (cy + h/2) * H
             dets.append([x1, y1, x2, y2, float(sc), int(lab)])
         return dets, W, H
+
+
+
+
+#!/usr/bin/env python
+import os
+import sys
+import yaml
+import argparse
+import torch
+import torchvision.transforms as T
+import rospy
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+from PIL import Image as PILImage
+from std_msgs.msg import Header
+from detr_detector.msg import Detection, DetectionArray
+
+# 使 third_party/Deformable-DETR 可被导入
+current_dir = os.path.dirname(__file__)
+third_party_dir = os.path.join(current_dir, "../third_party/Deformable-DETR")
+sys.path.append(os.path.abspath(third_party_dir))
+
+from util.misc import nested_tensor_from_tensor_list
+from models.backbone import build_backbone
+from models.deformable_transformer import build_deforamble_transformer
+from models.deformable_detr import DeformableDETR
+
+
+class DeformableDETRRunner:
+    def __init__(self, cfg):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.num_classes = cfg["num_classes"]
+        self.num_queries = cfg["num_queries"]
+        self.num_feature_levels = cfg["num_feature_levels"]
+        self.hidden_dim = cfg["hidden_dim"]
+        self.backbone_name = cfg["backbone"]
+        self.resize_short = cfg["resize_short"]
+        self.score_th = cfg["score_th"]
+        self.checkpoint = cfg["checkpoint"]
+
+        args = argparse.Namespace(
+            dataset_file="coco",
+            num_classes=self.num_classes,
+            backbone=self.backbone_name,
+            hidden_dim=self.hidden_dim,
+            num_queries=self.num_queries,
+            num_feature_levels=self.num_feature_levels,
+            dilation=False,
+            position_embedding="sine",
+            enc_layers=6, dec_layers=6, dim_feedforward=1024, dropout=0.1, nheads=8,
+            device="cuda", lr=1e-4, masks=False, lr_backbone=1e-5, batch_size=2, epochs=50,
+            output_dir="exps/r50_deformable_detr_single_scale",
+            enc_n_points=4, dec_n_points=4, two_stage=False, dec_layer_share=False, pretrained=False
+        )
+
+        backbone = build_backbone(args)
+        transformer = build_deforamble_transformer(args)
+        self.model = DeformableDETR(
+            backbone=backbone,
+            transformer=transformer,
+            num_classes=self.num_classes,
+            num_queries=self.num_queries,
+            num_feature_levels=self.num_feature_levels
+        )
+        self.model.to(self.device)
+        self.model.eval()
+
+        # 加载权重
+        ckpt = torch.load(self.checkpoint, map_location=self.device)
+        state = ckpt.get("model", ckpt.get("state_dict", ckpt))
+        self.model.load_state_dict(state, strict=False)
+        print(f"[DeformableDETRRunner] 模型已成功加载，使用设备: {self.device}")
+
+        # 预处理
+        self.transform = T.Compose([
+            T.Resize(self.resize_short),
+            T.ToTensor(),
+            T.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])
+        ])
+
+    def infer_image(self, pil_img):
+        img_t = self.transform(pil_img).to(self.device)
+        samples = nested_tensor_from_tensor_list([img_t])
+
+        with torch.no_grad():
+            outputs = self.model(samples)
+
+        logits = outputs["pred_logits"][0].cpu()
+        boxes = outputs["pred_boxes"][0].cpu()
+
+        probs = logits.softmax(-1)
+        scores, labels = probs.max(-1)
+        bg_idx = self.num_classes
+        keep = (labels != bg_idx) & (scores > self.score_th)
+
+        kept_boxes = boxes[keep].numpy()
+        kept_labels = labels[keep].numpy()
+        kept_scores = scores[keep].numpy()
+
+        resized = T.Resize(self.resize_short)(pil_img)
+        W, H = resized.size
+
+        dets = []
+        for (cx, cy, w, h), lab, sc in zip(kept_boxes, kept_labels, kept_scores):
+            x1 = (cx - w/2) * W
+            y1 = (cy - h/2) * H
+            x2 = (cx + w/2) * W
+            y2 = (cy + h/2) * H
+            dets.append([x1, y1, x2, y2, float(sc), int(lab)])
+        return dets, W, H
+
+
+class DetrDetectorNode:
+    def __init__(self):
+        cfg_path = rospy.get_param("~config_file")
+        with open(cfg_path, "r") as f:
+            cfg = yaml.safe_load(f)
+        self.runner = DeformableDETRRunner(cfg)
+        self.bridge = CvBridge()
+        self.sub = rospy.Subscriber(cfg["input_topic"], Image, self.image_cb, queue_size=1)
+        self.pub = rospy.Publisher("/detections", DetectionArray, queue_size=10)
+        rospy.loginfo("detector节点启动")
+
+    def image_cb(self, msg):
+        cv_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+        pil_img = PILImage.fromarray(cv_img[:, :, ::-1])
+        dets, W, H = self.runner.infer_image(pil_img)
+
+        arr = DetectionArray()
+        arr.header = Header(stamp=msg.header.stamp, frame_id=msg.header.frame_id)
+        arr.width = W
+        arr.height = H
+
+        for x1, y1, x2, y2, score, cls in dets:
+            d = Detection()
+            d.header = arr.header
+            d.bbox = [x1, y1, x2, y2]
+            d.score = score
+            d.class_id = cls
+            arr.detections.append(d)
+
+        self.pub.publish(arr)
+
+
+if __name__ == "__main__":
+    rospy.init_node("detr_detector")
+    DetrDetectorNode()
+    rospy.spin()
