@@ -36,6 +36,10 @@ Traceback (most recent call last):
     from tracker.msg import Track, TrackArray
 ModuleNotFoundError: No module named 'tracker'
 
+/usr/local/lib/python3.8/dist-packages/torch/functional.py:505: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at /opt/pytorch/pytorch/aten/src/ATen/native/TensorShape.cpp:3490.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+^C[detr_detector-1] killing on exit
+
 
 Traceback (most recent call last):
   File "/home/nx/catkin_ws/devel/lib/tracker/tracker_node.py", line 15, in <module>
