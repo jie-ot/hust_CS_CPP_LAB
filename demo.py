@@ -29,6 +29,12 @@ RuntimeError: Error(s) in loading state_dict for DeformableDETR:
 	size mismatch for class_embed.5.weight: copying a param with shape torch.Size([91, 256]) from checkpoint, the shape in current model is torch.Size([7, 256]).
 	size mismatch for class_embed.5.bias: copying a param with shape torch.Size([91]) from checkpoint, the shape in current model is torch.Size([7]).
 
+Traceback (most recent call last):
+  File "/home/nx/catkin_ws/devel/lib/tracker/tracker_node.py", line 15, in <module>
+    exec(compile(fh.read(), python_script, 'exec'), context)
+  File "/home/nx/catkin_ws/src/tracker/src/tracker_node.py", line 5, in <module>
+    from tracker.msg import Track, TrackArray
+ModuleNotFoundError: No module named 'tracker'
 
 
 python3 --version
