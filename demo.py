@@ -1,4 +1,9 @@
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIEJzWmzNF4g/eX6U8t2guwvgOlS19WBfYRjbteOKffk nx@ubuntu
+  File "/home/nx/catkin_ws/src/detr_detector/src/detector_node.py", line 8, in <module>
+    from infer_detr import DeformableDETRRunner
+ModuleNotFoundError: No module named 'infer_detr'
+
+
 
 python3 --version
 python3 -m venv deformable_detr
