@@ -13,7 +13,8 @@
 std_msgs/Header header
 int32 track_id
 float32[4] bbox   # [x1, y1, x2, y2]
-float32 score 
+float32 score
+int32 class_id
 
 # TrackArray.msg
 std_msgs/Header header
@@ -81,12 +82,12 @@ class TrackerNode:
         detections = []
         for det in msg.detections:
             x1, y1, x2, y2 = det.bbox
-            detections.append([float(x1), float(y1), float(x2), float(y2), float(det.score)])
+            detections.append([float(x1), float(y1), float(x2), float(y2), float(det.score), int(det.class_id)])
 
         if len(detections) > 0:
-            dets_np = np.array(detections, dtype=np.float32)   # shape:(N,5)
+            dets_np = np.array(detections, dtype=np.float32)   # shape:(N,6)
         else:
-            dets_np = np.empty((0, 5), dtype=np.float32)
+            dets_np = np.empty((0, 6), dtype=np.float32)
 
         img_info = (int(msg.height), int(msg.width))
         img_size = (int(msg.height), int(msg.width))
@@ -99,15 +100,14 @@ class TrackerNode:
 
         # 发布跟踪结果
         for i, t in enumerate(online_targets):
-            tlwh = t.tlwh
-            x1, y1, w, h = tlwh
-            x2, y2 = x1 + w, y1 + h
+            bbox = t.tlbr
 
             track_msg = Track()
             track_msg.header = Header(stamp=msg.header.stamp, frame_id=msg.header.frame_id)
-            track_msg.track_id = int(getattr(t, "track_id", getattr(t, "id", -1)))
-            track_msg.bbox = [float(x1), float(y1), float(x2), float(y2)]
-            track_msg.score = float(getattr(t, "score", getattr(t, "det_score", 0.0)))
+            track_msg.track_id = int(getattr(t, "track_id", -1))
+            track_msg.bbox = [float(bbox[0]), float(bbox[1]), float(bbox[2]), float(bbox[3])]
+            track_msg.score = float(getattr(t, "score", 0.0))
+            track_msg.class_id = int(getattr(t, "cls", 0))
 
             arr.tracks.append(track_msg)
 
