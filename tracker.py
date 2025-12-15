@@ -18,6 +18,8 @@ int32 class_id
 
 # TrackArray.msg
 std_msgs/Header header
+int32 width
+int32 height
 tracker/Track[] tracks
 
 
@@ -97,6 +99,8 @@ class TrackerNode:
 
         arr = TrackArray()
         arr.header = Header(stamp=msg.header.stamp, frame_id=msg.header.frame_id)
+        arr.width = msg.width
+        arr.height = msg.height
 
         # 发布跟踪结果
         for i, t in enumerate(online_targets):
