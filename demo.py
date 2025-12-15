@@ -18,6 +18,24 @@ AttributeError: module 'numpy' has no attribute 'float'.
 The aliases was originally deprecated in NumPy 1.20; for more details and guidance see the original release note at:
     https://numpy.org/devdocs/release/1.20.0-notes.html#deprecations
 
+[ERROR] [1765796057.034257]: bad callback: <bound method TrackerNode.det_cb of <__main__.TrackerNode object at 0xfffef87537f0>>
+Traceback (most recent call last):
+  File "/opt/ros/noetic/lib/python3/dist-packages/rospy/topics.py", line 750, in _invoke_callback
+    cb(msg)
+  File "/home/nx/catkin_ws/src/tracker/src/tracker_node.py", line 55, in det_cb
+    online_targets = self.tracker.update(dets_np, img_info, img_size)
+  File "/home/nx/catkin_ws/src/tracker/src/../third_party/ByteTrack/yolox/tracker/byte_tracker.py", line 195, in update
+    detections = [STrack(STrack.tlbr_to_tlwh(tlbr), s, cls) for
+  File "/home/nx/catkin_ws/src/tracker/src/../third_party/ByteTrack/yolox/tracker/byte_tracker.py", line 195, in <listcomp>
+    detections = [STrack(STrack.tlbr_to_tlwh(tlbr), s, cls) for
+  File "/home/nx/catkin_ws/src/tracker/src/../third_party/ByteTrack/yolox/tracker/byte_tracker.py", line 18, in __init__
+    self._tlwh = np.asarray(tlwh, dtype=np.float)
+  File "/usr/local/lib/python3.8/dist-packages/numpy/__init__.py", line 305, in __getattr__
+    raise AttributeError(__former_attrs__[attr])
+AttributeError: module 'numpy' has no attribute 'float'.
+`np.float` was a deprecated alias for the builtin `float`. To avoid this error in existing code, use `float` by itself. Doing this will not modify any behavior and is safe. If you specifically wanted the numpy scalar type, use `np.float64` here.
+The aliases was originally deprecated in NumPy 1.20; for more details and guidance see the original release note at:
+    https://numpy.org/devdocs/release/1.20.0-notes.html#deprecations
 
 Traceback (most recent call last):
   File "/home/nx/catkin_ws/devel/lib/detr_detector/detector_node.py", line 15, in <module>
