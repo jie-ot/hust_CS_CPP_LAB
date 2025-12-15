@@ -37,6 +37,20 @@ Traceback (most recent call last):
 ModuleNotFoundError: No module named 'tracker'
 
 
+Traceback (most recent call last):
+  File "/home/nx/catkin_ws/devel/lib/tracker/tracker_node.py", line 15, in <module>
+    exec(compile(fh.read(), python_script, 'exec'), context)
+  File "/home/nx/catkin_ws/src/tracker/src/tracker_node.py", line 9, in <module>
+    from yolox.tracker.byte_tracker import BYTETracker
+  File "/home/nx/catkin_ws/src/tracker/src/../third_party/ByteTrack/yolox/__init__.py", line 4, in <module>
+    from .utils import configure_module
+  File "/home/nx/catkin_ws/src/tracker/src/../third_party/ByteTrack/yolox/utils/__init__.py", line 7, in <module>
+    from .checkpoint import load_ckpt, save_checkpoint
+  File "/home/nx/catkin_ws/src/tracker/src/../third_party/ByteTrack/yolox/utils/checkpoint.py", line 4, in <module>
+    from loguru import logger
+ModuleNotFoundError: No module named 'loguru'
+
+
 python3 --version
 python3 -m venv deformable_detr
 source deformable_detr/bin/activate
