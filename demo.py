@@ -1,3 +1,5 @@
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIEJzWmzNF4g/eX6U8t2guwvgOlS19WBfYRjbteOKffk nx@ubuntu
+
 python3 --version
 python3 -m venv deformable_detr
 source deformable_detr/bin/activate
